@@ -1,0 +1,15 @@
+{
+  "name": "tekton-logs-server",
+  "version": "0.0.1",
+  "description": "Server to stream tekton logs from gcs bucket",
+  "main": "index.js",
+  "author": "iheb-chakroun <iheb.chakroun@neo9.fr>",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/storage": "6.8.0",
+    "express": "4.17.1"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}
