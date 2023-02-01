@@ -1,17 +1,22 @@
 const { Storage } = require('@google-cloud/storage');
-const { parse_json }  = require ('./parse-json')
+const { parse_json } = require('./parse-json');
+const { log } = require('./log');
 
 const storage = new Storage();
 
 const bucketName = process.env.BUCKET_NAME;
 
 const streamLogs = async (namespace, pod, container, response) => {
+  log(`Getting ${namespace}/${pod}/${container}`);
   const [files] = await storage.bucket(bucketName).getFiles({
-    prefix: namespace + "/" + pod + "/" + container + "/",
+    prefix: `logs/${namespace}/${pod}/${container}/`,
     autoPaginate: false,
-    delimiter: "",
+    delimiter: '',
   });
-  let chunks = "";
+  let chunks = '';
+  files.forEach((file) => {
+    log(file.name);
+  });
   files
     .sort((a, b) => a.name.localeCompare(b.name))
     .reduce(
@@ -21,31 +26,27 @@ const streamLogs = async (namespace, pod, container, response) => {
             new Promise((resolve) =>
               file
                 .createReadStream()
-                .on("end", () => {
+                .on('end', () => {
                   resolve();
                 })
-                .on("data", (chunk) => {
-                  chunks = chunks.concat(
-                    Buffer.from(chunk, "base64").toString("ascii")
-                  );
-                })
-            )
+                .on('data', (chunk) => {
+                  chunks = chunks.concat(Buffer.from(chunk, 'base64').toString('ascii'));
+                }),
+            ),
         ),
-      Promise.resolve()
+      Promise.resolve(),
     )
     .then(() => {
       parse_json(chunks)
         .map((chunk) => {
           try {
             const parsed = JSON.parse(chunk);
-            return { log: parsed.log, time: parsed.time };
+            return { log: parsed.log || parsed.message, time: parsed.time };
           } catch (e) {}
         })
         .filter((chunk) => chunk)
-        .sort((a, b) =>
-          a["time"] > b["time"] ? 1 : a["time"] < b["time"] ? -1 : 0
-        )
-        .map((chunk) => response.write(chunk["log"]));
+        .sort((a, b) => (a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 : 0))
+        .map((chunk) => response.write(chunk['log']+"\n"));
       response.end();
     });
 };

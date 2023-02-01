@@ -1,0 +1,13 @@
+printWidth: 100
+trailingComma: 'all'
+useTabs: false
+semi: true
+singleQuote: true
+bracketSpacing: true
+quoteProps: consistent
+arrowParens: always
+endOfLine: 'lf'
+overrides:
+  - files: ['*.js']
+    options:
+      parser: typescript
