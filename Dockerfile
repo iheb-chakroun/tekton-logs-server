@@ -1,10 +1,6 @@
-FROM node:14
-
-WORKDIR /home/app
-
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
 COPY . .
-
-RUN yarn 
-
-ENTRYPOINT [ "yarn", "start" ]
-
+CMD ["npm", "start"]
